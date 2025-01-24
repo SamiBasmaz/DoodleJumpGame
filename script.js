@@ -12,6 +12,14 @@ let doodlerY = boardHeight*7/8 - doodlerHeight;
 let doodlerRightImg;
 let doodlerLeftImg;
 
+let doodler = {
+    img : null,
+    x : doodlerX,
+    y : doodlerY,
+    width : doodlerWidth,
+    height : doodlerHeight
+}
+
 // !physics 
 let velocityX = 0;
 let velocityY = 0; //dooler jump speed
@@ -29,13 +37,7 @@ let maxScore = 0;
 let gameOver = false;
 
 
-let doodler = {
-    img : null,
-    x : doodlerX,
-    y : doodlerY,
-    width : doodlerWidth,
-    height : doodlerHeight
-}
+
 
 window.onload = function() {
     board = document.getElementById("board");
@@ -89,8 +91,26 @@ function update() {
     // !Platforms
     for (let i = 0; i < platformArray.length; i++) {
         let platform = platformArray[i];
+        if (velocityY < 0 && doodler.y < boardHeight*3/4) {
+            platform.y -= initialVelocityY;
+        }
+        if (detectCollision(doodler, platform) && velocityY >= 0){
+            velocityY = initialVelocityY; //jump
+        }
         context.drawImage(platformImg, platform.x, platform.y, platform.width, platform.height)
     }
+
+    //clear platforms and add new platform
+    while (platformArray.length > 0 && platformArray[0].y >= boardHeight) {
+        platformArray.shift(); //removes first element from the array
+        newPlatform();
+    }
+
+    //score
+    updateScore();
+    context.fillStyle = "black"
+    context.font ="16px sans-serif"
+    context.fillText(score, 5, 20);
 
 }
 
@@ -120,10 +140,38 @@ function placePlatforms() {
     platformArray.push(platform);
 
 
-    platform = {
+    // platform = {
+    //     img : platformImg,
+    //     x : boardWidth/2,
+    //     y : boardHeight - 150,
+    //     width : platformWidth,
+    //     height : platformHeight
+    // }
+
+    // platformArray.push(platform);
+
+    for (let i = 0; i <6; i++) {
+        let randomX = Math.floor(Math.random() * boardWidth*3/4);  
+        let platform = {
+            img : platformImg,
+            x : randomX,
+            y : boardHeight - 75*i - 150,
+            width : platformWidth,
+            height : platformHeight
+        }
+    
+        platformArray.push(platform);
+        
+    }
+
+}
+
+function newPlatform() {
+    let randomX = Math.floor(Math.random() * boardWidth*3/4);  
+    let platform = {
         img : platformImg,
-        x : boardWidth/2,
-        y : boardHeight - 150,
+        x : randomX,
+        y : -platformHeight,
         width : platformWidth,
         height : platformHeight
     }
@@ -132,9 +180,18 @@ function placePlatforms() {
 
 }
 
-// ------------------------------------   28.39 -------------------------------------//
+function detectCollision(a, b) {
+    return a.x < b.x + b.width &&   //a's top left corner doesn't reach b's top right corner
+           a.x + a.width > b.x &&   //a's top right corner passes b's top left corner
+           a.y < b.y + b.height &&  //a's top left corner doesn't reach b's bottom left corner
+           a.y + a.height > b.y;    //a's bottom left corner passes b's top left corner
+}
 
 
+function updateScore (){
+    let points = Math.floor(50*Math.random()); //(0-1) * --> (0-50)
+    score += points;
+}
 
 
 
